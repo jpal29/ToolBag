@@ -48,6 +48,10 @@ db.init_app(app)
 def index():
 	return render_template('index.html')
 
+@app.route('/storytime')
+def storytime_index():
+	return render_template('storytime/index.html')
+
 @app.template_filter('clean_querystring')
 def clean_querystring(request_args, *keys_to_remove, **new_values):
 	querystring = dict((key, value) for key, value in request_args.items())
