@@ -9,11 +9,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
 
 
-from markdown import markdown
-from markdown.extensions.codehilite import CodeHiliteExtension
-from markdown.extensions.extra import ExtraExtension
-from micawber import bootstrap_basic, parse_html
-from micawber.cache import Cache as OEmbedCache
 
 from models import db
 
