@@ -3,6 +3,7 @@ import functools
 import os
 import re
 import urllib
+from werkzeug.routing import BaseConverter
 
 from flask import (Flask, abort, flash, Markup, redirect, render_template, request, Response, session, url_for)
 from flask_sqlalchemy import SQLAlchemy
@@ -39,6 +40,15 @@ db.init_app(app)
 
 #db.create_all()
 
+class RegexConverter(BaseConverter):
+	def __init__(self, url_map, *items):
+		super(RegexConverter, self).__init__(url_map)
+		self.regex = items[0]
+
+app.url_map.converters['regex'] = RegexConverter
+
+@app.route
+
 @app.route('/')
 def index():
 	return render_template('index.html')
@@ -47,9 +57,11 @@ def index():
 def storytime_index():
 	return render_template('storytime/index.html')
 
+"""
 @app.route('/test')
 def test_index():
         return render_template('test/index.html')
+"""
 
 @app.template_filter('clean_querystring')
 def clean_querystring(request_args, *keys_to_remove, **new_values):
