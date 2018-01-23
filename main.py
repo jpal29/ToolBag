@@ -11,7 +11,7 @@ from flask_restful import Resource, Api
 
 
 
-from models import db
+from models import db, Entry
 
 #from personal_site.models import Entry, db
 
@@ -47,7 +47,6 @@ class RegexConverter(BaseConverter):
 
 app.url_map.converters['regex'] = RegexConverter
 
-@app.route
 
 @app.route('/')
 def index():
@@ -56,6 +55,16 @@ def index():
 @app.route('/storytime')
 def storytime_index():
 	return render_template('storytime/index.html')
+
+@app.route('/task', methods=["GET", "POST"])
+def home():
+    if request.form:
+        task = Entry(task=request.form.get("task"))
+        db.session.add(task)
+        db.session.commit()
+    tasks = Entry.query.all()
+    return render_template("task/index.html", tasks=tasks)
+
 
 """
 @app.route('/test')
