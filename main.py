@@ -50,7 +50,14 @@ app.url_map.converters['regex'] = RegexConverter
 
 @app.route('/')
 def index():
-	return render_template('index.html')
+	if not session.get('logged_in'):
+		return render_template('login.html')
+	else:
+	    return render_template('index.html')
+
+@app.route('/register', methods=["POST"])
+def register():
+    if request.method = 
 
 @app.route('/storytime')
 def storytime_index():
@@ -64,6 +71,14 @@ def home():
         db.session.commit()
     tasks = Entry.query.all()
     return render_template("task/index.html", tasks=tasks)
+
+@app.route('/login', methods=['POST'])
+def do_login():
+	if request.form['password'] == 'password' and request.form['username'] == 'admin':
+		session['logged_in'] = True
+	else:
+		flash('wrong password!')
+	return index()
 
 
 """
