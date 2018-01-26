@@ -6,7 +6,7 @@ import urllib
 import bot
 from werkzeug.routing import BaseConverter
 
-from flask import (Flask, abort, flash, Markup, redirect, render_template, request, Response, session, url_for)
+from flask import (Flask, abort, flash, Markup, redirect, render_template, request, Response, session, url_for, make_response)
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
 
