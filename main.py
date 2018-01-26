@@ -169,9 +169,9 @@ def index():
 	else:
 	    return render_template('index.html')
 
-@app.route('/register', methods=["POST"])
+"""@app.route('/register', methods=["POST"])
 def register():
-    if request.method = 
+    if request.method = """
 
 @app.route('/storytime')
 def storytime_index():
