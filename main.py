@@ -81,13 +81,11 @@ def _event_handler(event_type, slack_event):
     # If the user has shared the onboarding message, the event type will be
     # message. We'll also need to check that this is a message that has been
     # shared by looking into the attachments for "is_shared".
-    elif event_type == "message" and slack_event["event"].get("attachments"):
+    elif event_type == "message":
         user_id = slack_event["event"].get("user")
-        if slack_event["event"]["attachments"][0].get("is_share"):
-            # Update the onboarding message and check off "Share this Message"
-            pyBot.update_share(team_id, user_id)
-            return make_response("Welcome message updates with shared message",
+        return make_response("Welcome message updates with shared message",
                                  200,)
+     
 
     # ============= Reaction Added Events ============= #
     # If the user has added an emoji reaction to the onboarding message
