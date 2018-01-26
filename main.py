@@ -4,6 +4,7 @@ import os
 import re
 import urllib
 import bot
+import json
 from werkzeug.routing import BaseConverter
 
 from flask import (Flask, abort, flash, Markup, redirect, render_template, request, Response, session, url_for, make_response)
@@ -128,8 +129,7 @@ def hears():
     This route listens for incoming events from Slack and uses the event
     handler helper function to route events to our Bot.
     """
-    slack_event = json.loads(request.data)
-
+    slack_event = json.loads(request.data.decode('utf-8'))
     # ============= Slack URL Verification ============ #
     # In order to verify the url of our endpoint, Slack will send a challenge
     # token in a request and check for this token in the response our endpoint
@@ -173,9 +173,6 @@ def index():
 def register():
     if request.method = """
 
-@app.route('/storytime')
-def storytime_index():
-	return render_template('storytime/index.html')
 
 @app.route('/task', methods=["GET", "POST"])
 def home():
