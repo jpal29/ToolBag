@@ -82,7 +82,7 @@ def _event_handler(event_type, slack_event):
     # message. We'll also need to check that this is a message that has been
     # shared by looking into the attachments for "is_shared".
     elif event_type == "message":
-        user_id = slack_event["event"].get("user")
+        #user_id = slack_event["event"].get("user")
         return make_response("Welcome message updates with shared message",
                                  200,)
      
