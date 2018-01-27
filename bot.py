@@ -34,7 +34,7 @@ class Bot(object):
         # an oauth token. We can connect to the client without authenticating
         # by passing an empty string as a token and then reinstantiating the
         # client with a valid OAuth token once we have one.
-        self.client = SlackClient("")
+        self.client = SlackClient("xoxb-304391101504-ZMVrZ4vhcq08tv8BC1EOLaLn")
         # We'll use this dictionary to store the state of each message object.
         # In a production envrionment you'll likely want to store this more
         # persistantly in  a database.
@@ -89,8 +89,12 @@ class Bot(object):
         """
         new_dm = self.client.api_call("im.open",
                                       user=user_id)
+        print("This is the dm")
+        print(new_dm)
         dm_id = new_dm["channel"]["id"]
         return dm_id
+
+
 
     def onboarding_message(self, team_id, user_id):
         """
@@ -144,6 +148,27 @@ class Bot(object):
         # message object which we'll use to update the message after a user
         # has completed an onboarding task.
         message_obj.timestamp = timestamp
+
+    def testing_message(self, team_id, user_id):
+        if self.messages.get(team_id):
+            # Then we'll update the message dictionary with a key for the
+            # user id we've recieved and a value of a new message object
+            self.messages[team_id].update({user_id: message.Message()})
+        else:
+            # If there aren't any message for that team, we'll add a dictionary
+            # of messages for that team id on our Bot's messages attribute
+            # and we'll add the first message object to the dictionary with
+            # the user's id as a key for easy access later.
+            self.messages[team_id] = {user_id: message.Message()}
+
+        message_obj = self.messages[team_id][user_id]
+        message_obj.channel = self.open_dm(user_id)
+        self.client.api_call("chat.postMessage",
+                                channel=message_obj.channel,
+                                username=self.name,
+                                text="hello")
+
+        
 
     def update_emoji(self, team_id, user_id):
         """

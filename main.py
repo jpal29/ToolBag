@@ -5,6 +5,7 @@ import re
 import urllib
 import bot
 import json
+import pprint
 from werkzeug.routing import BaseConverter
 
 from flask import (Flask, abort, flash, Markup, redirect, render_template, request, Response, session, url_for, make_response)
@@ -82,7 +83,8 @@ def _event_handler(event_type, slack_event):
     # message. We'll also need to check that this is a message that has been
     # shared by looking into the attachments for "is_shared".
     elif event_type == "message":
-        #user_id = slack_event["event"].get("user")
+        user_id = slack_event["event"].get("user")
+        pyBot.testing_message(team_id, user_id)
         return make_response("Welcome message updates with shared message",
                                  200,)
      
@@ -121,13 +123,19 @@ def thanks():
 	pyBot.auth(code_arg)
 	return render_template("thanks.html")
 
+@app.route("/command", methods=["POST"])
+def command():
+	return make_response("NGROK tunnel is working", 200)
+
 @app.route("/listening", methods=["GET", "POST"])
 def hears():
     """
     This route listens for incoming events from Slack and uses the event
     handler helper function to route events to our Bot.
     """
+    print("Received the slack event")
     slack_event = json.loads(request.data.decode('utf-8'))
+    pprint.pprint(slack_event)
     # ============= Slack URL Verification ============ #
     # In order to verify the url of our endpoint, Slack will send a challenge
     # token in a request and check for this token in the response our endpoint
@@ -142,6 +150,7 @@ def hears():
     # We can verify the request is coming from Slack by checking that the
     # verification token in the request matches our app's settings
     if pyBot.verification != slack_event.get("token"):
+        print("You got the wrong one Buzzo")
         message = "Invalid Slack verification token: %s \npyBot has: \
                    %s\n\n" % (slack_event["token"], pyBot.verification)
         # By adding "X-Slack-No-Retry" : 1 to our response headers, we turn off
@@ -152,6 +161,7 @@ def hears():
     # If the incoming request is an Event we've subcribed to
     if "event" in slack_event:
         event_type = slack_event["event"]["type"]
+        print(event_type)
         # Then handle the event by event_type and have your bot respond
         return _event_handler(event_type, slack_event)
     # If our bot hears things that are not events we've subscribed to,
