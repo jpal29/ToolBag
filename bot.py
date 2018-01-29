@@ -4,6 +4,7 @@ Python Slack Bot class for use with the pythOnBoarding app
 """
 import os
 import message
+import MySQLdb
 
 from slackclient import SlackClient
 
@@ -13,12 +14,11 @@ from slackclient import SlackClient
 # save this in a more persistant memory store.
 authed_teams = {}
 
-
 class Bot(object):
     """ Instanciates a Bot object to handle Slack onboarding interactions."""
     def __init__(self):
         super(Bot, self).__init__()
-        self.name = "pythonboardingbot"
+        self.name = "tripmanager"
         self.emoji = ":robot_face:"
         # When we instantiate a new bot object, we can access the app
         # credentials we set earlier in our local development environment.
@@ -39,6 +39,12 @@ class Bot(object):
         # In a production envrionment you'll likely want to store this more
         # persistantly in  a database.
         self.messages = {}
+
+        #Adding the database configuration for diesem bot
+        self.db_host = os.environ.get("Personal_Site_DB_Host")
+        self.db_user = os.environ.get("Personal_Site_DB_User")
+        self.db_password = os.environ.get("Personal_Site_DB_Password")
+        self.db_name = os.environ.get("Slack_DB_Name")
 
     def auth(self, code):
         """
@@ -89,10 +95,14 @@ class Bot(object):
         """
         new_dm = self.client.api_call("im.open",
                                       user=user_id)
+
         print("This is the dm")
         print(new_dm)
         dm_id = new_dm["channel"]["id"]
         return dm_id
+
+    """def open_cm(self, channel_id):
+        new_cm = self.client.api_call("im.open",)"""
 
 
 
@@ -149,7 +159,8 @@ class Bot(object):
         # has completed an onboarding task.
         message_obj.timestamp = timestamp
 
-    def testing_message(self, team_id, user_id):
+    def testing_message(self, team_id, channel_id):
+        """
         if self.messages.get(team_id):
             # Then we'll update the message dictionary with a key for the
             # user id we've recieved and a value of a new message object
@@ -160,13 +171,27 @@ class Bot(object):
             # and we'll add the first message object to the dictionary with
             # the user's id as a key for easy access later.
             self.messages[team_id] = {user_id: message.Message()}
-
-        message_obj = self.messages[team_id][user_id]
-        message_obj.channel = self.open_dm(user_id)
+        """
+        
         self.client.api_call("chat.postMessage",
-                                channel=message_obj.channel,
-                                username=self.name,
+                                channel=channel_id,
                                 text="hello")
+
+    def add_camping_item(self, channel_id, user_id, item_request):
+        parsed_item_request = item_request.split("> add ")
+        camping_item = parsed_item_request[1]
+        print(self.db_user)
+        db_connection = MySQLdb.connect(self.db_host, self.db_user, self.db_password, self.db_name)
+        db_cursor = db_connection.cursor()
+        db_cursor.execute("INSERT INTO campingitems (name, requested_by) VALUES (%s, %s)", (camping_item, user_id))
+        db_connection.commit()
+        db_connection.close()
+
+        self.client.api_call("chat.postMessage",
+                                channel=channel_id,
+                                text="Item added.")
+
+
 
         
 

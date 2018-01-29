@@ -73,7 +73,7 @@ def _event_handler(event_type, slack_event):
     # ================ Team Join Events =============== #
     # When the user first joins a team, the type of event will be team_join
     if event_type == "team_join":
-        user_id = slack_event["event"]["user"]["id"]
+        user_id = slack_event["event"]["user"]
         # Send the onboarding message
         pyBot.onboarding_message(team_id, user_id)
         return make_response("Welcome Message Sent", 200,)
@@ -82,11 +82,33 @@ def _event_handler(event_type, slack_event):
     # If the user has shared the onboarding message, the event type will be
     # message. We'll also need to check that this is a message that has been
     # shared by looking into the attachments for "is_shared".
-    elif event_type == "message":
-        user_id = slack_event["event"].get("user")
-        pyBot.testing_message(team_id, user_id)
-        return make_response("Welcome message updates with shared message",
+    # Need to make sure that type of message is not a bot_message which is handled by the 'subtype'
+    # boolean. Not handling this leads to an infinite post of messages until the bot is killed.
+    elif event_type == "message" and 'subtype' not in slack_event['event']: 
+    	response = "Message received, but nothing was done"
+    	user_id = slack_event["event"]["user"]
+    	channel_id = slack_event["event"].get("channel")
+    	message_content = slack_event["event"]['text']
+
+    	if 'add' in message_content:
+    		pyBot.add_camping_item(channel_id, user_id, message_content)
+    		global response 
+    		response = "Items were added"
+    		print(response)
+    	else:
+    		pyBot.testing_message(team_id, channel_id)
+    		global response
+    		response = "test message sent"
+        	
+    	return make_response(response,
                                  200,)
+
+    elif event_type == "app_mention" and 'subtype' not in slack_event['event']:
+    	channel_id = slack_event["event"].get("channel")
+    	pyBot.testing_message(team_id, channel_id)
+    	return make_response("Welcome message updates with shared message",
+                                 200,)
+
      
 
     # ============= Reaction Added Events ============= #
