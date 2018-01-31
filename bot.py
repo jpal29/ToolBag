@@ -180,10 +180,11 @@ class Bot(object):
     def add_camping_item(self, channel_id, user_id, item_request):
         parsed_item_request = item_request.split("> add ")
         camping_item = parsed_item_request[1]
-        print(self.db_user)
+        user_info = self.client.api_call("users.info", user=user_id)
+        user_name = user_info["user"]["profile"]["real_name"]
         db_connection = MySQLdb.connect(self.db_host, self.db_user, self.db_password, self.db_name)
         db_cursor = db_connection.cursor()
-        db_cursor.execute("INSERT INTO campingitems (name, requested_by) VALUES (%s, %s)", (camping_item, user_id))
+        db_cursor.execute("INSERT INTO campingitems (name, requested_by) VALUES (%s, %s)", (camping_item, user_name))
         db_connection.commit()
         db_connection.close()
 
@@ -191,8 +192,41 @@ class Bot(object):
                                 channel=channel_id,
                                 text="Item added.")
 
+    def list_camping_items(self, channel_id, user_id):
+        db_connection = MySQLdb.connect(self.db_host, self.db_user, self.db_password, self.db_name)
+        db_cursor = db_connection.cursor()
+        db_cursor.execute("SELECT name, requested_by from campingitems")
+        items = db_cursor.fetchall()
+        item_string = "item       requested by\n"
+        for item in items:
+            item_string = item_string + item[0] + "       " + item[1] + "    "+ "\n"
 
+        self.client.api_call("chat.postMessage",
+                                channel=channel_id,
+                                text=item_string)
 
+    """
+    Apparently, python doesn't have switch statements. What a sham.
+    In any case here is the alternative for this which I am putting here for future
+    reference:
+    def f(x):
+    return {
+        'a': 1,
+        'b': 2
+    }.get(x, 9) #9 is default if x not found
+    """
+
+    def sass(self, channel_id, user_id, sass_victim):
+        response =  {
+            'andrew': 'Andrew has a mangina, Andrew has a mangina.',
+            'alex': 'Dude, check out his hammies, those things are massive',
+            'nick': 'Sorry, you need to leave him alone. He needs to focus on his art.',
+            'brendan': 'Shhhhhh! He\'s busy studying',
+            'adam': 'That fucker hasn\'t joined yet, he does not exist',
+            'millian': 'Sorry, you need to leave him alone. He needs to focus on his art.'
+        }.get(sass_victim, 'Sorry, that is not the user you want to sass.')
+
+        self.client.api_call("chat.postMessage", channel=channel_id, text=response)
         
 
     def update_emoji(self, team_id, user_id):

@@ -51,7 +51,7 @@ class RegexConverter(BaseConverter):
 
 app.url_map.converters['regex'] = RegexConverter
 
-def _event_handler(event_type, slack_event):
+def _event_router(event_type, slack_event):
     """
     A helper function that routes events from Slack to our Bot
     by event type and subtype.
@@ -88,25 +88,62 @@ def _event_handler(event_type, slack_event):
     	response = "Message received, but nothing was done"
     	user_id = slack_event["event"]["user"]
     	channel_id = slack_event["event"].get("channel")
-    	message_content = slack_event["event"]['text']
+    	message_content = slack_event["event"]['text'].lower()
+
+    	names = ['andrew', 'alex', 'nick', 'brendan', 'millian']
 
     	if 'add' in message_content:
     		pyBot.add_camping_item(channel_id, user_id, message_content)
     		global response 
     		response = "Items were added"
     		print(response)
+    	elif 'list' in message_content:
+    		pyBot.list_camping_items(channel_id, user_id)
+    	elif any(name in message_content for name in names):
+    		for name in names:
+    			if name in message_content:
+    				pyBot.sass(channel_id, user_id, name)
+    		global response
+    		response = "Sass was dispensed"
+    	"""
     	else:
     		pyBot.testing_message(team_id, channel_id)
     		global response
     		response = "test message sent"
+    	"""
         	
     	return make_response(response,
                                  200,)
 
     elif event_type == "app_mention" and 'subtype' not in slack_event['event']:
+    	response = "Message received, but nothing was done"
+    	user_id = slack_event["event"]["user"]
     	channel_id = slack_event["event"].get("channel")
-    	pyBot.testing_message(team_id, channel_id)
-    	return make_response("Welcome message updates with shared message",
+    	message_content = slack_event["event"]['text']
+
+    	names = ['andrew', 'alex', 'nick', 'brendan', 'bitch']
+
+    	if 'add' in message_content:
+    		pyBot.add_camping_item(channel_id, user_id, message_content)
+    		global response 
+    		response = "Items were added"
+    		print(response)
+    	elif 'list' in message_content:
+    		pyBot.list_camping_items(channel_id, user_id)
+    	elif any(name in message_content for name in names):
+    		for name in names:
+    			if name in message_content:
+    				pyBot.sass(channel_id, user_id, name)
+    		global response
+    		response = "Sass was dispensed"
+    	"""
+    	else:
+    		pyBot.testing_message(team_id, channel_id)
+    		global response
+    		response = "test message sent"
+    	"""
+        	
+    	return make_response(response,
                                  200,)
 
      
@@ -185,7 +222,7 @@ def hears():
         event_type = slack_event["event"]["type"]
         print(event_type)
         # Then handle the event by event_type and have your bot respond
-        return _event_handler(event_type, slack_event)
+        return _event_router(event_type, slack_event)
     # If our bot hears things that are not events we've subscribed to,
     # send a quirky but helpful error response
     return make_response("[NO EVENT IN SLACK REQUEST] These are not the droids\
