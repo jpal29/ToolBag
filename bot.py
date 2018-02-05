@@ -5,6 +5,7 @@ Python Slack Bot class for use with the pythOnBoarding app
 import os
 import message
 import MySQLdb
+import pprint
 
 from slackclient import SlackClient
 
@@ -178,7 +179,16 @@ class Bot(object):
                                 text="hello")
 
     def add_camping_item(self, channel_id, user_id, item_request):
-        parsed_item_request = item_request.split("> add ")
+        parsed_item_request = ""
+        #Need to handle both direct requests and app mention.
+        #So if there is an app mention then the request starts with <@APPID>
+        #Hence the parsing with ">"
+        if ">" in item_request:
+            global parsed_item_request
+            parsed_item_request = item_request.split("> add ")
+        else:
+            global parsed_item_request
+            parsed_item_request = item_request.split("add ")
         camping_item = parsed_item_request[1]
         user_info = self.client.api_call("users.info", user=user_id)
         user_name = user_info["user"]["profile"]["real_name"]
@@ -197,9 +207,34 @@ class Bot(object):
         db_cursor = db_connection.cursor()
         db_cursor.execute("SELECT name, requested_by from campingitems")
         items = db_cursor.fetchall()
-        item_string = "item       requested by\n"
+
+        #Trying to do a little hack to be able to print out nicely formatted tables in slack
+        ####################
+
+
+
+        max_lens = [len(str(max(item, key=lambda x: len(str(x))))) for item in items]
+        #print(max_lens)
+        maximum = max(max_lens)
+        #print(maximum)
+        test=""
+        for row in items:
+            #print(row)
+            print('|'.join('{0:{width}}'.format(x, width=y) for x, y in zip(row, max_lens)))
+
+
+        #End hack
+        ###################
+
+        
+
+        item_string = "{0:{width}} {0:{width}} \n".format('requested by', width=50)
+        pprint.pprint(items)
         for item in items:
-            item_string = item_string + item[0] + "       " + item[1] + "    "+ "\n"
+            #print(item)
+            length = maximum - len(item[0])
+            item_string = item_string + "{0:{width}} {0:{width}} ".format(item[1], width=50)
+            print(item_string)
 
         self.client.api_call("chat.postMessage",
                                 channel=channel_id,
@@ -331,3 +366,5 @@ class Bot(object):
                                             )
         # Update the timestamp saved on the message object
         message_obj.timestamp = post_message["ts"]
+
+
