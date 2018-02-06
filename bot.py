@@ -194,7 +194,7 @@ class Bot(object):
         user_name = user_info["user"]["profile"]["real_name"]
         db_connection = MySQLdb.connect(self.db_host, self.db_user, self.db_password, self.db_name)
         db_cursor = db_connection.cursor()
-        db_cursor.execute("INSERT INTO campingitems (name, requested_by) VALUES (%s, %s)", (camping_item, user_name))
+        db_cursor.execute("INSERT INTO campitemneed (name, requested_by) VALUES (%s, %s)", (camping_item, user_name))
         db_connection.commit()
         db_connection.close()
 
@@ -202,43 +202,53 @@ class Bot(object):
                                 channel=channel_id,
                                 text="Item added.")
 
-    def list_camping_items(self, channel_id, user_id):
+    def list_camping_items_needed(self, channel_id, user_id):
         db_connection = MySQLdb.connect(self.db_host, self.db_user, self.db_password, self.db_name)
         db_cursor = db_connection.cursor()
-        db_cursor.execute("SELECT name, requested_by from campingitems")
+        db_cursor.execute("SELECT name, requested_by from campitemneed")
         items = db_cursor.fetchall()
-
-        #Trying to do a little hack to be able to print out nicely formatted tables in slack
-        ####################
-
-
-
-        max_lens = [len(str(max(item, key=lambda x: len(str(x))))) for item in items]
-        #print(max_lens)
-        maximum = max(max_lens)
-        #print(maximum)
-        test=""
-        for row in items:
-            #print(row)
-            print('|'.join('{0:{width}}'.format(x, width=y) for x, y in zip(row, max_lens)))
-
-
-        #End hack
-        ###################
-
-        
-
-        item_string = "{0:{width}} {0:{width}} \n".format('requested by', width=50)
-        pprint.pprint(items)
+        """
+        #A little hack to be able to print out nicely formatted tables in slack
+        max_lens_array = [len(str(max(item, key=lambda x: len(str(x))))) for item in items]
+        maximum = max(max_lens_array)
+        Just commenting this out while I play with some other stuff
+        item_string = "{:<{width}} {:<{width}} \n".format('requested by', 'name', width=maximum)
         for item in items:
             #print(item)
-            length = maximum - len(item[0])
-            item_string = item_string + "{0:{width}} {0:{width}} ".format(item[1], width=50)
-            print(item_string)
+            #length = maximum - len(item[0])
+            print("{:<{width}} {:<{width}} \n".format(item[0], item[1], width=maximum))
+            item_string = item_string + "{:<{width}} {:<{width}} \n".format(item[0], item[1], width=maximum)
+        """
+
+        ##So I'll leave the above, but the next 10 so lines is the solution to my problem
+        item_string = "" #Just initializing an empty string
+        name_string = ""
+
+
+        for item in items:
+            item_string = item_string + item[0] + "\n"
+            name_string = name_string + item[1] + "\n"
+
+
+        attachment = [{
+            "fields": [
+                {
+                    "title": "Item",
+                    "value": item_string,
+                    "short": True
+                },
+                {
+                    "title": "Requested by",
+                    "value": name_string,
+                    "short": True
+                }
+            ]
+        }]
 
         self.client.api_call("chat.postMessage",
                                 channel=channel_id,
-                                text=item_string)
+                                text="Here are the camping items",
+                                attachments=attachment)
 
     """
     Apparently, python doesn't have switch statements. What a sham.

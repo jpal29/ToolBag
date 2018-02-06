@@ -98,7 +98,7 @@ def _event_router(event_type, slack_event):
     		response = "Items were added"
     		print(response)
     	elif 'list' in message_content:
-    		pyBot.list_camping_items(channel_id, user_id)
+    		pyBot.list_camping_items_needed(channel_id, user_id)
     	elif any(name in message_content for name in names):
     		for name in names:
     			if name in message_content:
@@ -129,7 +129,7 @@ def _event_router(event_type, slack_event):
     		response = "Items were added"
     		print(response)
     	elif 'list' in message_content:
-    		pyBot.list_camping_items(channel_id, user_id)
+    		pyBot.list_camping_items_needed(channel_id, user_id)
     	elif any(name in message_content for name in names):
     		for name in names:
     			if name in message_content:
