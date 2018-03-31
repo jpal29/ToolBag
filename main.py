@@ -37,6 +37,7 @@ DB_PASSWORD = os.getenv('Personal_Site_DB_Password')
 DB_HOST = os.getenv('Personal_Site_DB_Host')
 SQLALCHEMY_DATABASE_URI = 'mysql://flaskuser:{}@{}:3306/personal_site_db'.format(DB_PASSWORD, DB_HOST)
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 #import personal_site.models
@@ -45,11 +46,11 @@ db.init_app(app)
 #db.create_all()
 
 class RegexConverter(BaseConverter):
-	def __init__(self, url_map, *items):
-		super(RegexConverter, self).__init__(url_map)
-		self.regex = items[0]
+    def __init__(self, url_map, *items):
+        super(RegexConverter, self).__init__(url_map)
+        self.regex = items[0]
 
-app.url_map.converters['regex'] = RegexConverter
+        app.url_map.converters['regex'] = RegexConverter
 
 def _event_router(event_type, slack_event):
     """
@@ -59,14 +60,14 @@ def _event_router(event_type, slack_event):
     Parameters
     ----------
     event_type : str
-        type of event recieved from Slack
+    type of event recieved from Slack
     slack_event : dict
-        JSON response from a Slack reaction event
+    JSON response from a Slack reaction event
 
     Returns
     ----------
     obj
-        Response object with 200 - ok or 500 - No Event Handler error
+    Response object with 200 - ok or 500 - No Event Handler error
 
     """
     team_id = slack_event["team_id"]
@@ -74,7 +75,7 @@ def _event_router(event_type, slack_event):
     # When the user first joins a team, the type of event will be team_join
     if event_type == "team_join":
         user_id = slack_event["event"]["user"]
-        # Send the onboarding message
+    # Send the onboarding message
         pyBot.onboarding_message(team_id, user_id)
         return make_response("Welcome Message Sent", 200,)
 
@@ -85,106 +86,84 @@ def _event_router(event_type, slack_event):
     # Need to make sure that type of message is not a bot_message which is handled by the 'subtype'
     # boolean. Not handling this leads to an infinite post of messages until the bot is killed.
     elif event_type == "message" and 'subtype' not in slack_event['event']: 
-    	response = "Message received, but nothing was done"
-    	user_id = slack_event["event"]["user"]
-    	channel_id = slack_event["event"].get("channel")
-    	message_content = slack_event["event"]['text'].lower()
+        response = "Message received, but nothing was done"
+        user_id = slack_event["event"]["user"]
+        channel_id = slack_event["event"].get("channel")
+        message_content = slack_event["event"]['text'].lower()
 
-    	names = ['andrew', 'alex', 'nick', 'brendan', 'millian']
+        names = ['andrew', 'alex', 'nick', 'brendan', 'millian']
 
-    	if 'add' in message_content:
-    		pyBot.add_camping_item(channel_id, user_id, message_content)
-    		global response 
-    		response = "Items were added"
-    		print(response)
-    	elif 'list' in message_content:
-    		pyBot.list_camping_items_needed(channel_id, user_id)
-    	elif any(name in message_content for name in names):
-    		for name in names:
-    			if name in message_content:
-    				pyBot.sass(channel_id, user_id, name)
-    		global response
-    		response = "Sass was dispensed"
-    	"""
-    	else:
-    		pyBot.testing_message(team_id, channel_id)
-    		global response
-    		response = "test message sent"
-    	"""
-        	
-    	return make_response(response,
-                                 200,)
+        if 'add' in message_content:
+            pyBot.add_camping_item(channel_id, user_id, message_content)
+            response = "Items were added"
+            print(response)
+            return make_response(response, 200)
+        elif 'list' in message_content:
+            pyBot.list_camping_items_needed(channel_id, user_id)
+            response = "Listed camping items"
+            return make_response(response, 200)
+        elif any(name in message_content for name in names):
+            """
+            Unfortunately since the any statement returns a bool, we then have to reiterate through the name list,
+            see if the name is one that we can sass, and then sass them. 
+            """
+            for name in names:
+                if name in message_content:
+                    pyBot.sass(channel_id, user_id, name)
+                    response = "Sass was dispensed"
+                    return make_response(response, 200)
+        else:
+            return make_response(response,
+            200,)
 
     elif event_type == "app_mention" and 'subtype' not in slack_event['event']:
-    	response = "Message received, but nothing was done"
-    	user_id = slack_event["event"]["user"]
-    	channel_id = slack_event["event"].get("channel")
-    	message_content = slack_event["event"]['text']
-
-    	names = ['andrew', 'alex', 'nick', 'brendan', 'bitch']
-
-    	if 'add' in message_content:
-    		pyBot.add_camping_item(channel_id, user_id, message_content)
-    		global response 
-    		response = "Items were added"
-    		print(response)
-    	elif 'list' in message_content:
-    		pyBot.list_camping_items_needed(channel_id, user_id)
-    	elif any(name in message_content for name in names):
-    		for name in names:
-    			if name in message_content:
-    				pyBot.sass(channel_id, user_id, name)
-    		global response
-    		response = "Sass was dispensed"
-    	"""
-    	else:
-    		pyBot.testing_message(team_id, channel_id)
-    		global response
-    		response = "test message sent"
-    	"""
-        	
-    	return make_response(response,
-                                 200,)
-
-     
-
-    # ============= Reaction Added Events ============= #
-    # If the user has added an emoji reaction to the onboarding message
-    elif event_type == "reaction_added":
+        response = "Message received, but nothing was done"
         user_id = slack_event["event"]["user"]
-        # Update the onboarding message
-        pyBot.update_emoji(team_id, user_id)
-        return make_response("Welcome message updates with reactji", 200,)
+        channel_id = slack_event["event"].get("channel")
+        message_content = slack_event["event"]['text']
 
-    # =============== Pin Added Events ================ #
-    # If the user has added an emoji reaction to the onboarding message
-    elif event_type == "pin_added":
-        user_id = slack_event["event"]["user"]
-        # Update the onboarding message
-        pyBot.update_pin(team_id, user_id)
-        return make_response("Welcome message updates with pin", 200,)
+        names = ['andrew', 'alex', 'nick', 'brendan', 'bitch']
 
+        if 'add' in message_content:
+            pyBot.add_camping_item(channel_id, user_id, message_content)
+            response = "Items were added"
+            print(response)
+            return make_response(response, 200)
+        elif 'list' in message_content:
+            pyBot.list_camping_items_needed(channel_id, user_id)
+            return make_response("Listed camping items", 200)
+        elif any(name in message_content for name in names):
+            for name in names:
+                if name in message_content:
+                    pyBot.sass(channel_id, user_id, name)
+                    response = "Sass was dispensed"
+                    return make_response(response, 200)
+        else:
+            return make_response(response,
+        200,)
+
+    else:   
     # ============= Event Type Not Found! ============= #
     # If the event_type does not have a handler
-    message = "You have not added an event handler for the %s" % event_type
-    # Return a helpful error message
-    return make_response(message, 200, {"X-Slack-No-Retry": 1})
+        message = "You have not added an event handler for the %s" % event_type
+        # Return a helpful error message
+        return make_response(message, 200, {"X-Slack-No-Retry": 1})
 
 @app.route("/install", methods=["GET"])
 def pre_install():
-	client_id = pyBot.oauth["client_id"]
-	scope = pyBot.oauth["scope"]
-	return render_template("install.html", client_id=client_id, scope=scope)
+    client_id = pyBot.oauth["client_id"]
+    scope = pyBot.oauth["scope"]
+    return render_template("install.html", client_id=client_id, scope=scope)
 
 @app.route("/thanks", methods=["GET", "POST"])
 def thanks():
-	code_arg = request.args.get('code')
-	pyBot.auth(code_arg)
-	return render_template("thanks.html")
+    code_arg = request.args.get('code')
+    pyBot.auth(code_arg)
+    return render_template("thanks.html")
 
 @app.route("/command", methods=["POST"])
 def command():
-	return make_response("NGROK tunnel is working", 200)
+    return make_response("NGROK tunnel is working", 200)
 
 @app.route("/listening", methods=["GET", "POST"])
 def hears():
@@ -202,22 +181,22 @@ def hears():
     #       For more info: https://api.slack.com/events/url_verification
     if "challenge" in slack_event:
         return make_response(slack_event["challenge"], 200, {"content_type":
-                                                             "application/json"
-                                                             })
+                             "application/json"
+                             })
 
-    # ============ Slack Token Verification =========== #
-    # We can verify the request is coming from Slack by checking that the
-    # verification token in the request matches our app's settings
+# ============ Slack Token Verification =========== #
+# We can verify the request is coming from Slack by checking that the
+# verification token in the request matches our app's settings
     if pyBot.verification != slack_event.get("token"):
         print("You got the wrong one Buzzo")
         message = "Invalid Slack verification token: %s \npyBot has: \
-                   %s\n\n" % (slack_event["token"], pyBot.verification)
-        # By adding "X-Slack-No-Retry" : 1 to our response headers, we turn off
-        # Slack's automatic retries during development.
+            %s\n\n" % (slack_event["token"], pyBot.verification)
+    # By adding "X-Slack-No-Retry" : 1 to our response headers, we turn off
+    # Slack's automatic retries during development.
         make_response(message, 403, {"X-Slack-No-Retry": 1})
 
-    # ====== Process Incoming Events from Slack ======= #
-    # If the incoming request is an Event we've subcribed to
+# ====== Process Incoming Events from Slack ======= #
+# If the incoming request is an Event we've subcribed to
     if "event" in slack_event:
         event_type = slack_event["event"]["type"]
         print(event_type)
@@ -226,60 +205,32 @@ def hears():
     # If our bot hears things that are not events we've subscribed to,
     # send a quirky but helpful error response
     return make_response("[NO EVENT IN SLACK REQUEST] These are not the droids\
-                         you're looking for.", 404, {"X-Slack-No-Retry": 1})
+    you're looking for.", 404, {"X-Slack-No-Retry": 1})
 
 
 @app.route('/')
 def index():
-	if not session.get('logged_in'):
-		return render_template('login.html')
-	else:
-	    return render_template('index.html')
+    if not session.get('logged_in'):
+        return render_template('login.html')
+    else:
+        return render_template('index.html')
 
-"""@app.route('/register', methods=["POST"])
-def register():
-    if request.method = """
-
-
-@app.route('/task', methods=["GET", "POST"])
-def home():
-    if request.form:
-        task = Entry(task=request.form.get("task"))
-        db.session.add(task)
-        db.session.commit()
-    tasks = Entry.query.all()
-    return render_template("task/index.html", tasks=tasks)
-
-@app.route('/login', methods=['POST'])
-def do_login():
-	if request.form['password'] == 'password' and request.form['username'] == 'admin':
-		session['logged_in'] = True
-	else:
-		flash('wrong password!')
-	return index()
-
-
-"""
-@app.route('/test')
-def test_index():
-        return render_template('test/index.html')
-"""
 
 @app.template_filter('clean_querystring')
 def clean_querystring(request_args, *keys_to_remove, **new_values):
-	querystring = dict((key, value) for key, value in request_args.items())
-	for key in keys_to_remove:
-		querystring.pop(key, None)
-	querystring.update(new_values)
-	return urllib.urlencode(querystring)
+    querystring = dict((key, value) for key, value in request_args.items())
+    for key in keys_to_remove:
+        querystring.pop(key, None)
+        querystring.update(new_values)
+    return urllib.urlencode(querystring)
 
 @app.errorhandler(404)
 def not_found(exc):
-	return Response('<h3>Not found</h3'), 404
+    return Response('<h3>Not found</h3'), 404
 
 
 
 
 if __name__=='__main__':
-	#db.create_tables([Entry], safe=True)
-	app.run(host='0.0.0.0', debug=True)
+#db.create_tables([Entry], safe=True)
+    app.run(host='0.0.0.0', debug=True)
