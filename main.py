@@ -210,10 +210,7 @@ def hears():
 
 @app.route('/')
 def index():
-    if not session.get('logged_in'):
-        return render_template('login.html')
-    else:
-        return render_template('index.html')
+    return render_template('test/index.html')
 
 
 @app.template_filter('clean_querystring')
