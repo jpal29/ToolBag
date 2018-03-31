@@ -27,7 +27,7 @@ class User(db.Model):
     time_created = db.Column(db.Time, nullable=False)
     date_created = db.Column(db.Date, nullable=False)
 
-    def __init__(self, username, password, first_name, last_name, permission=1, id=None, time=datetime.datetime.now().time(), date=datetime.datetime.now().date()):
+    def __init__(self, username, password, first_name, last_name, id=None, time=datetime.datetime.now().time(), date=datetime.datetime.now().date()):
         self.username = username
         self.password = bcrypt.generate_password_hash(password)
         self.first_name = first_name
