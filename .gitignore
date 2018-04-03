@@ -1,3 +1,6 @@
 *.pyc
 __pycache__/
 env/
+
+#Want to ignore the .egg-info directory
+*.egg-info/

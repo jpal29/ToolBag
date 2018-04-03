@@ -3,7 +3,7 @@ import functools
 import os
 import re
 import urllib
-import bot
+import TripManager.bot
 import json
 import pprint
 from werkzeug.routing import BaseConverter
@@ -14,12 +14,10 @@ from flask_restful import Resource, Api
 
 
 
-from models import db, Entry
-
-#from personal_site.models import Entry, db
+from TripManager.models import db, Entry
 
 ADMIN_PASSWORD = 'secret'
-APP_DIR = os.path.dirname(os.path.realpath(__file__))
+#APP_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
 
@@ -28,7 +26,7 @@ SITE_WIDTH = 800
 
 
 
-#TBH, I have no idea what these next three lines are doing
+
 app = Flask(__name__)
 pyBot = bot.Bot()
 slack = pyBot.client
@@ -40,10 +38,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
-#import personal_site.models
-#from personal_site.models import Entry
+import TripManager.views
 
-#db.create_all()
 
 class RegexConverter(BaseConverter):
     def __init__(self, url_map, *items):
@@ -227,7 +223,7 @@ def not_found(exc):
 
 
 
-
+"""
 if __name__=='__main__':
-#db.create_tables([Entry], safe=True)
     app.run(host='0.0.0.0', debug=True)
+"""
