@@ -1,4 +1,4 @@
-from TripManager import app
+from TripManager.main import app
 from TripManager.models import db
 
 @app.route('/testing_new_structure')
