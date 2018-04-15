@@ -98,10 +98,18 @@ def _event_router(event_type, slack_event):
             response = "Items were added"
             print(response)
             return make_response(response, 200)
-        elif 'list' in message_content:
-            pyBot.list_camping_items_needed(channel_id, user_id)
-            response = "Listed camping items"
+        elif 'remove' in message_content:
+            print('received remove request')
+            pyBot.remove_camping_item(channel_id, user_id, message_content)
+            response = "Items were removed from list of needed items and added to purchased item list"
             return make_response(response, 200)
+        elif 'list needed items' in message_content:
+            pyBot.list_camping_items_needed(channel_id, user_id)
+            return make_response("Listed camping items needed", 200)
+        elif 'list purchased items' in message_content:
+            pyBot.list_camping_items_purchased(channel_id, user_id)
+            return make_response("Listed camping items purchased", 200)
+
         elif any(name in message_content for name in names):
             """
             Unfortunately since the any statement returns a bool, we then have to reiterate through the name list,
@@ -129,9 +137,17 @@ def _event_router(event_type, slack_event):
             response = "Items were added"
             print(response)
             return make_response(response, 200)
-        elif 'list' in message_content:
+        elif 'remove' in message_content:
+            print('received remove request')
+            pyBot.remove_camping_item(channel_id, user_id, message_content)
+            response = "Items were removed from list of needed items and added to purchased item list"
+            return make_response(response, 200)
+        elif 'list needed items' in message_content:
             pyBot.list_camping_items_needed(channel_id, user_id)
-            return make_response("Listed camping items", 200)
+            return make_response("Listed camping items needed", 200)
+        elif 'list purchased items' in message_content:
+            pyBot.list_camping_items_purchased(channel_id, user_id)
+            return make_response("Listed camping items purchased", 200)
         elif any(name in message_content for name in names):
             for name in names:
                 if name in message_content:

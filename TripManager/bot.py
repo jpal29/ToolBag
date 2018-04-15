@@ -47,6 +47,10 @@ class Bot(object):
         self.db_password = os.environ.get("Personal_Site_DB_Password")
         self.db_name = os.environ.get("Slack_DB_Name")
 
+    def create_db_connection(self):
+        db_connection = MySQLdb.connect(self.db_host, self.db_user, self.db_password, self.db_name)
+        return db_connection
+
     def auth(self, code):
         """
         Authenticate with OAuth and assign correct scopes.
@@ -190,7 +194,7 @@ class Bot(object):
         camping_item = parsed_item_request[1]
         user_info = self.client.api_call("users.info", user=user_id)
         user_name = user_info["user"]["profile"]["real_name"]
-        db_connection = MySQLdb.connect(self.db_host, self.db_user, self.db_password, self.db_name)
+        db_connection = self.create_db_connection()
         db_cursor = db_connection.cursor()
         db_cursor.execute("INSERT INTO campitemneed (name, requested_by) VALUES (%s, %s)", (camping_item, user_name))
         db_connection.commit()
@@ -200,25 +204,42 @@ class Bot(object):
                                 channel=channel_id,
                                 text="Item added.")
 
+    def remove_camping_item(self, channel_id, user_id, item):
+        print("removing item")
+        parsed_item = ""
+
+        #Need this if-else in case a user has reqeusted this removal
+        if ">" in item:
+            parsed_item = item.split("> remove ")
+        else:
+            parsed_item = item.split("remove ")
+        remove_item = parsed_item[1]
+        user_info = self.client.api_call("users.info", user=user_id)
+        user_name = user_info["user"]["profile"]["real_name"]
+
+        #Creating db connection and removing item from list of items needed
+        db_connection = self.create_db_connection()
+        db_cursor = db_connection.cursor()
+        print(remove_item)
+        db_cursor.execute("DELETE from campitemneed WHERE name = %s", (remove_item))
+        db_connection.commit()
+
+        #Adding the removed item to the list of items we have
+        db_cursor.execute("INSERT INTO campitemhave (name, purchased_by) VALUES (%s, %s)", (remove_item, user_name))
+        db_connection.commit()
+        db_connection.close()
+
+        self.client.api_call("chat.postMessage",
+                                channel=channel_id,
+                                text="Item removed and added to purchased items")
+
     def list_camping_items_needed(self, channel_id, user_id):
-        db_connection = MySQLdb.connect(self.db_host, self.db_user, self.db_password, self.db_name)
+        db_connection = self.create_db_connection()
         db_cursor = db_connection.cursor()
         db_cursor.execute("SELECT name, requested_by from campitemneed")
         items = db_cursor.fetchall()
-        """
-        #A little hack to be able to print out nicely formatted tables in slack
-        max_lens_array = [len(str(max(item, key=lambda x: len(str(x))))) for item in items]
-        maximum = max(max_lens_array)
-        Just commenting this out while I play with some other stuff
-        item_string = "{:<{width}} {:<{width}} \n".format('requested by', 'name', width=maximum)
-        for item in items:
-            #print(item)
-            #length = maximum - len(item[0])
-            print("{:<{width}} {:<{width}} \n".format(item[0], item[1], width=maximum))
-            item_string = item_string + "{:<{width}} {:<{width}} \n".format(item[0], item[1], width=maximum)
-        """
 
-        ##So I'll leave the above, but the next 10 so lines is the solution to my problem
+        
         item_string = "" #Just initializing an empty string
         name_string = ""
 
@@ -245,19 +266,43 @@ class Bot(object):
 
         self.client.api_call("chat.postMessage",
                                 channel=channel_id,
-                                text="Here are the camping items",
+                                text="Here are the camping items need",
                                 attachments=attachment)
 
-    """
-    Apparently, python doesn't have switch statements. What a sham.
-    In any case here is the alternative for this which I am putting here for future
-    reference:
-    def f(x):
-    return {
-        'a': 1,
-        'b': 2
-    }.get(x, 9) #9 is default if x not found
-    """
+    
+    def list_camping_items_purchased(self, channel_id, user_id):
+        db_connection = self.create_db_connection()
+        db_cursor = db_connection.cursor()
+        db_cursor.execute("SELECT name, purchased_by from campitemhave")
+        items = db_cursor.fetchall()
+    
+        for item in items:
+            item_string = item_string + item[0] + "\n"
+            name_string = name_string + item[1] + "\n"
+
+
+        attachment = [{
+            "fields": [
+                {
+                    "title": "Item",
+                    "value": item_string,
+                    "short": True
+                },
+                {
+                    "title": "Purchased by",
+                    "value": name_string,
+                    "short": True
+                }
+            ]
+        }]
+
+        self.client.api_call("chat.postMessage",
+                                channel=channel_id,
+                                text="Here are the camping items purchased",
+                                attachments=attachment)
+
+
+    
 
     def sass(self, channel_id, user_id, sass_victim):
         response =  {
