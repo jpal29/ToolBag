@@ -33,7 +33,7 @@ slack = pyBot.client
 #Configuring the mysql database
 DB_PASSWORD = os.getenv('Personal_Site_DB_Password')
 DB_HOST = os.getenv('Personal_Site_DB_Host')
-SQLALCHEMY_DATABASE_URI = 'mysql://flaskuser:{}@{}:3306/personal_site_db'.format(DB_PASSWORD, DB_HOST)
+SQLALCHEMY_DATABASE_URI = 'mysql://flaskuser:{}@{}:3306/slackdb'.format(DB_PASSWORD, DB_HOST)
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)

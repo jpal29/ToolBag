@@ -9,6 +9,8 @@ import pprint
 
 from slackclient import SlackClient
 
+from TripManager.models import db, CampItemNeed, CampItemHave
+
 # To remember which teams have authorized your app and what tokens are
 # associated with each team, we can store this information in memory on
 # as a global object. When your bot is out of development, it's best to
@@ -194,11 +196,9 @@ class Bot(object):
         camping_item = parsed_item_request[1]
         user_info = self.client.api_call("users.info", user=user_id)
         user_name = user_info["user"]["profile"]["real_name"]
-        db_connection = self.create_db_connection()
-        db_cursor = db_connection.cursor()
-        db_cursor.execute("INSERT INTO campitemneed (name, requested_by) VALUES (%s, %s)", (camping_item, user_name))
-        db_connection.commit()
-        db_connection.close()
+        new_item = CampItemNeed(camping_item, user_name)
+        db.session.add(new_item)
+        db.session.commit()
 
         self.client.api_call("chat.postMessage",
                                 channel=channel_id,
@@ -213,31 +213,26 @@ class Bot(object):
             parsed_item = item.split("> remove ")
         else:
             parsed_item = item.split("remove ")
-        remove_item = parsed_item[1]
+        camping_item = parsed_item[1]
         user_info = self.client.api_call("users.info", user=user_id)
         user_name = user_info["user"]["profile"]["real_name"]
-
-        #Creating db connection and removing item from list of items needed
-        db_connection = self.create_db_connection()
-        db_cursor = db_connection.cursor()
-        print(remove_item)
-        db_cursor.execute("DELETE from campitemneed WHERE name = %s", (remove_item))
-        db_connection.commit()
+        remove_items = CampItemNeed.query.filter(CampItemNeed.item_name.equals(camping_item)).delete()
+        for item in remove_items:
+            print(item)
+        db.session.delete(remove_items)
+        db.session.commit()
 
         #Adding the removed item to the list of items we have
-        db_cursor.execute("INSERT INTO campitemhave (name, purchased_by) VALUES (%s, %s)", (remove_item, user_name))
-        db_connection.commit()
-        db_connection.close()
+        db.session.add(camping_item, user_name)
+        db.session.commit()
 
         self.client.api_call("chat.postMessage",
                                 channel=channel_id,
                                 text="Item removed and added to purchased items")
 
     def list_camping_items_needed(self, channel_id, user_id):
-        db_connection = self.create_db_connection()
-        db_cursor = db_connection.cursor()
-        db_cursor.execute("SELECT name, requested_by from campitemneed")
-        items = db_cursor.fetchall()
+        
+        items = CampItemNeed.query.filter().all()
 
         
         item_string = "" #Just initializing an empty string
@@ -245,8 +240,8 @@ class Bot(object):
 
 
         for item in items:
-            item_string = item_string + item[0] + "\n"
-            name_string = name_string + item[1] + "\n"
+            item_string = item_string + item.item_name + "\n"
+            name_string = name_string + item.requested_by + "\n"
 
 
         attachment = [{
@@ -271,14 +266,15 @@ class Bot(object):
 
     
     def list_camping_items_purchased(self, channel_id, user_id):
-        db_connection = self.create_db_connection()
-        db_cursor = db_connection.cursor()
-        db_cursor.execute("SELECT name, purchased_by from campitemhave")
-        items = db_cursor.fetchall()
+
+        items = CampItemHave.query.filter().all()
+
+        item_string = ""
+        name_string = ""
     
         for item in items:
-            item_string = item_string + item[0] + "\n"
-            name_string = name_string + item[1] + "\n"
+            item_string = item_string + item.item_name + "\n"
+            name_string = name_string + item.purchased_by + "\n"
 
 
         attachment = [{

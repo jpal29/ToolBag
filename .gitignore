@@ -4,3 +4,5 @@ env/
 
 #Want to ignore the .egg-info directory
 *.egg-info/
+
+migrations/

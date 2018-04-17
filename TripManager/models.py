@@ -48,3 +48,27 @@ class User(db.Model):
         except:
             return {'status': False, 'failed': 'Invalid username.'}
 
+class CampItemNeed(db.Model):
+    __tablename__ = 'campitemneed'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    item_name = db.Column(db.String(255), nullable=False)
+    requested_by = db.Column(db.String(255), nullable=False)
+
+    def __init__(self, item_name, requested_by):
+        self.item_name = item_name
+        self.requested_by = requested_by
+
+class CampItemHave(db.Model):
+    __tablename__ = 'campitemhave'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    item_name = db.Column(db.String(255), nullable=False)
+    purchased_by = db.Column(db.String(255), nullable=False)
+
+    def __init__(self, item_name, purchased_by):
+        self.item_name = item_name
+        self.purchased_by = purchased_by
+
+
+
