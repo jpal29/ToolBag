@@ -123,7 +123,10 @@ def _event_router(event_type, slack_event):
         else:
             return make_response(response,
             200,)
-
+    """
+    This is basically just a copy of all the event handling for a message event. May need a better way
+    to handle this.
+    """
     elif event_type == "app_mention" and 'subtype' not in slack_event['event']:
         response = "Message received, but nothing was done"
         user_id = slack_event["event"]["user"]

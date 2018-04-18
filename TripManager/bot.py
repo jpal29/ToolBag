@@ -208,7 +208,7 @@ class Bot(object):
         print("removing item")
         parsed_item = ""
 
-        #Need this if-else in case a user has reqeusted this removal
+        #Need this if-else in case a user has requested this removal
         if ">" in item:
             parsed_item = item.split("> remove ")
         else:
@@ -216,19 +216,27 @@ class Bot(object):
         camping_item = parsed_item[1]
         user_info = self.client.api_call("users.info", user=user_id)
         user_name = user_info["user"]["profile"]["real_name"]
-        remove_items = CampItemNeed.query.filter(CampItemNeed.item_name.equals(camping_item)).delete()
-        for item in remove_items:
-            print(item)
-        db.session.delete(remove_items)
-        db.session.commit()
 
-        #Adding the removed item to the list of items we have
-        db.session.add(camping_item, user_name)
-        db.session.commit()
+        item_remove = CampItemNeed.query.filter_by(item_name=camping_item).all()
+        if item_remove:
 
-        self.client.api_call("chat.postMessage",
-                                channel=channel_id,
-                                text="Item removed and added to purchased items")
+            CampItemNeed.query.filter_by(item_name=camping_item).delete()
+
+            #Adding the removed item to the list of items we have
+            have_item = CampItemHave(camping_item, user_name)
+            db.session.add(have_item)
+            db.session.commit()
+
+            self.client.api_call("chat.postMessage",
+                                    channel=channel_id,
+                                    text="Item removed and added to purchased items")
+            return
+        else:
+            self.client.api_call("chat.postMessage",
+                                    channel=channel_id,
+                                    text="This item isn't needed")
+            return
+
 
     def list_camping_items_needed(self, channel_id, user_id):
         
