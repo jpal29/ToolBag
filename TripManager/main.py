@@ -216,7 +216,7 @@ def hears():
 
 # ====== Process Incoming Events from Slack ======= #
 # If the incoming request is an Event we've subcribed to
-    if "event" in slack_event:
+    if "event" in slack_event and 'subtype' not in slack_event['event']:
         event_type = slack_event["event"]["type"]
         print(event_type)
         # Then handle the event by event_type and have your bot respond
