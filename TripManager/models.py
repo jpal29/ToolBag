@@ -70,5 +70,16 @@ class CampItemHave(db.Model):
         self.item_name = item_name
         self.purchased_by = purchased_by
 
+class SassEntry(db.Model):
+    __tablename__ = 'SassEntry'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    blurb = db.Column(db.String(255), nullable=False)
+    receiver = db.Column(db.String(255), nullable=False)
+
+    def __init__(self, blurb, receiver):
+        self.blurb = blurb 
+        self.receiver = receiver
+
 
 
