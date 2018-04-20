@@ -15,9 +15,9 @@ from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand 
 from TripManager.models import db, Entry
 from TripManager.bot import Bot
+from TripManager.event_processor import EventProcessor
 
 ADMIN_PASSWORD = 'secret'
-#APP_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
 
@@ -52,121 +52,6 @@ class RegexConverter(BaseConverter):
 
         app.url_map.converters['regex'] = RegexConverter
 
-def _event_router(event_type, slack_event):
-    """
-    A helper function that routes events from Slack to our Bot
-    by event type and subtype.
-
-    Parameters
-    ----------
-    event_type : str
-    type of event recieved from Slack
-    slack_event : dict
-    JSON response from a Slack reaction event
-
-    Returns
-    ----------
-    obj
-    Response object with 200 - ok or 500 - No Event Handler error
-
-    """
-    team_id = slack_event["team_id"]
-    # ================ Team Join Events =============== #
-    # When the user first joins a team, the type of event will be team_join
-    if event_type == "team_join":
-        user_id = slack_event["event"]["user"]
-    # Send the onboarding message
-        pyBot.onboarding_message(team_id, user_id)
-        return make_response("Welcome Message Sent", 200,)
-
-    # ============== Share Message Events ============= #
-    # If the user has shared the onboarding message, the event type will be
-    # message. We'll also need to check that this is a message that has been
-    # shared by looking into the attachments for "is_shared".
-    # Need to make sure that type of message is not a bot_message which is handled by the 'subtype'
-    # boolean. Not handling this leads to an infinite post of messages until the bot is killed.
-    elif event_type == "message" and 'subtype' not in slack_event['event']: 
-        response = "Message received, but nothing was done"
-        user_id = slack_event["event"]["user"]
-        channel_id = slack_event["event"].get("channel")
-        message_content = slack_event["event"]['text'].lower()
-
-        names = ['andrew', 'alex', 'nick', 'brendan', 'millian']
-
-        if 'add' in message_content:
-            pyBot.add_camping_item(channel_id, user_id, message_content)
-            response = "Items were added"
-            print(response)
-            return make_response(response, 200)
-        elif 'remove' in message_content:
-            print('received remove request')
-            pyBot.remove_camping_item(channel_id, user_id, message_content)
-            response = "Items were removed from list of needed items and added to purchased item list"
-            return make_response(response, 200)
-        elif 'list needed items' in message_content:
-            pyBot.list_camping_items_needed(channel_id, user_id)
-            return make_response("Listed camping items needed", 200)
-        elif 'list purchased items' in message_content:
-            pyBot.list_camping_items_purchased(channel_id, user_id)
-            return make_response("Listed camping items purchased", 200)
-
-        elif any(name in message_content for name in names):
-            """
-            Unfortunately since the any statement returns a bool, we then have to reiterate through the name list,
-            see if the name is one that we can sass, and then sass them. 
-            """
-            for name in names:
-                if name in message_content:
-                    pyBot.sass(channel_id, user_id, name)
-                    response = "Sass was dispensed"
-                    return make_response(response, 200)
-        else:
-            return make_response(response,
-            200,)
-    """
-    This is basically just a copy of all the event handling for a message event. May need a better way
-    to handle this.
-    """
-    elif event_type == "app_mention" and 'subtype' not in slack_event['event']:
-        response = "Message received, but nothing was done"
-        user_id = slack_event["event"]["user"]
-        channel_id = slack_event["event"].get("channel")
-        message_content = slack_event["event"]['text']
-
-        names = ['andrew', 'alex', 'nick', 'brendan', 'bitch']
-
-        if 'add' in message_content:
-            pyBot.add_camping_item(channel_id, user_id, message_content)
-            response = "Items were added"
-            print(response)
-            return make_response(response, 200)
-        elif 'remove' in message_content:
-            print('received remove request')
-            pyBot.remove_camping_item(channel_id, user_id, message_content)
-            response = "Items were removed from list of needed items and added to purchased item list"
-            return make_response(response, 200)
-        elif 'list needed items' in message_content:
-            pyBot.list_camping_items_needed(channel_id, user_id)
-            return make_response("Listed camping items needed", 200)
-        elif 'list purchased items' in message_content:
-            pyBot.list_camping_items_purchased(channel_id, user_id)
-            return make_response("Listed camping items purchased", 200)
-        elif any(name in message_content for name in names):
-            for name in names:
-                if name in message_content:
-                    pyBot.sass(channel_id, user_id, name)
-                    response = "Sass was dispensed"
-                    return make_response(response, 200)
-        else:
-            return make_response(response,
-        200,)
-
-    else:   
-    # ============= Event Type Not Found! ============= #
-    # If the event_type does not have a handler
-        message = "You have not added an event handler for the %s" % event_type
-        # Return a helpful error message
-        return make_response(message, 200, {"X-Slack-No-Retry": 1})
 
 @app.route("/install", methods=["GET"])
 def pre_install():
@@ -218,11 +103,18 @@ def hears():
 # If the incoming request is an Event we've subcribed to
     if "event" in slack_event and 'subtype' not in slack_event['event']:
         event_type = slack_event["event"]["type"]
-        print(event_type)
-        # Then handle the event by event_type and have your bot respond
-        return _event_router(event_type, slack_event)
-    # If our bot hears things that are not events we've subscribed to,
-    # send a quirky but helpful error response
+        NewEvent = EventProcessor(event_type, slack_event)
+
+        if event_type=="message" or event_type=="app_mention":
+            return NewEvent.handle_message(pyBot)
+        else:   
+        # ============= Event Type Not Found! ============= #
+            # If the event_type does not have a handler
+            message = "You have not added an event handler for the %s" % event_type
+            # Return a helpful error message
+            return make_response(message, 200, {"X-Slack-No-Retry": 1})
+
+    # If our bot hears things that are not events we've subscribed to
     return make_response("[NO EVENT IN SLACK REQUEST] These are not the droids\
     you're looking for.", 404, {"X-Slack-No-Retry": 1})
 

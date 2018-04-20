@@ -49,10 +49,6 @@ class Bot(object):
         self.db_password = os.environ.get("Personal_Site_DB_Password")
         self.db_name = os.environ.get("Slack_DB_Name")
 
-    def create_db_connection(self):
-        db_connection = MySQLdb.connect(self.db_host, self.db_user, self.db_password, self.db_name)
-        return db_connection
-
     def auth(self, code):
         """
         Authenticate with OAuth and assign correct scopes.
@@ -110,79 +106,6 @@ class Bot(object):
 
     """def open_cm(self, channel_id):
         new_cm = self.client.api_call("im.open",)"""
-
-
-
-    def onboarding_message(self, team_id, user_id):
-        """
-        Create and send an onboarding welcome message to new users. Save the
-        time stamp of this message on the message object for updating in the
-        future.
-
-        Parameters
-        ----------
-        team_id : str
-            id of the Slack team associated with the incoming event
-        user_id : str
-            id of the Slack user associated with the incoming event
-
-        """
-        # We've imported a Message class from `message.py` that we can use
-        # to create message objects for each onboarding message we send to a
-        # user. We can use these objects to keep track of the progress each
-        # user on each team has made getting through our onboarding tutorial.
-
-        # First, we'll check to see if there's already messages our bot knows
-        # of for the team id we've got.
-        if self.messages.get(team_id):
-            # Then we'll update the message dictionary with a key for the
-            # user id we've recieved and a value of a new message object
-            self.messages[team_id].update({user_id: message.Message()})
-        else:
-            # If there aren't any message for that team, we'll add a dictionary
-            # of messages for that team id on our Bot's messages attribute
-            # and we'll add the first message object to the dictionary with
-            # the user's id as a key for easy access later.
-            self.messages[team_id] = {user_id: message.Message()}
-        message_obj = self.messages[team_id][user_id]
-        # Then we'll set that message object's channel attribute to the DM
-        # of the user we'll communicate with
-        message_obj.channel = self.open_dm(user_id)
-        # We'll use the message object's method to create the attachments that
-        # we'll want to add to our Slack message. This method will also save
-        # the attachments on the message object which we're accessing in the
-        # API call below through the message object's `attachments` attribute.
-        message_obj.create_attachments()
-        post_message = self.client.api_call("chat.postMessage",
-                                            channel=message_obj.channel,
-                                            username=self.name,
-                                            icon_emoji=self.emoji,
-                                            text=message_obj.text,
-                                            attachments=message_obj.attachments
-                                            )
-        timestamp = post_message["ts"]
-        # We'll save the timestamp of the message we've just posted on the
-        # message object which we'll use to update the message after a user
-        # has completed an onboarding task.
-        message_obj.timestamp = timestamp
-
-    def testing_message(self, team_id, channel_id):
-        """
-        if self.messages.get(team_id):
-            # Then we'll update the message dictionary with a key for the
-            # user id we've recieved and a value of a new message object
-            self.messages[team_id].update({user_id: message.Message()})
-        else:
-            # If there aren't any message for that team, we'll add a dictionary
-            # of messages for that team id on our Bot's messages attribute
-            # and we'll add the first message object to the dictionary with
-            # the user's id as a key for easy access later.
-            self.messages[team_id] = {user_id: message.Message()}
-        """
-        
-        self.client.api_call("chat.postMessage",
-                                channel=channel_id,
-                                text="hello")
 
     def add_camping_item(self, channel_id, user_id, item_request):
         parsed_item_request = ""

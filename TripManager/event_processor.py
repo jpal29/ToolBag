@@ -2,7 +2,7 @@ from flask import (make_response)
 
 
 class EventProcessor:
-    """ Instanciates a Bot object to handle Slack onboarding interactions."""
+    
     def __init__(self, event_type, slack_event):
         self.names = ['andrew', 'alex', 'nick', 'brendan', 'millian']
         self.response = "Message received, but nothing was done"
