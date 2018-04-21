@@ -9,7 +9,7 @@ import pprint
 
 from slackclient import SlackClient
 
-from TripManager.models import db, CampItemNeed, CampItemHave
+from TripManager.models import db, CampItemNeed, CampItemHave, SassEntry
 
 # To remember which teams have authorized your app and what tokens are
 # associated with each team, we can store this information in memory on
@@ -228,20 +228,47 @@ class Bot(object):
                                 text="Here are the camping items purchased",
                                 attachments=attachment)
 
+    def set_sass(self, channel_id, user_id, message):
+        #We need to parse the message to get the user(sass victim) and the message.
+        #The format of the message should be @TripManager set sass for @Josh Is he even relevant?
+        parsed_message = message.split('> set sass for ')
+        re_parsed_message = parsed_message[1].split('> ')
+        sass_victim = re_parsed_message[0] + ">"
+        sass_content = re_parsed_message[1]
 
-    
+        table_row = SassEntry.query.filter_by(receiver=sass_victim).first()
+        #Need to see if the sass victim already has some sass associated with them
+        if (table_row is None):
+            new_sass = SassEntry(sass_content, sass_victim)
+            db.session.add(new_sass)
+            db.session.commit()
+            self.client.api_call("chat.postMessage",
+                                channel=channel_id,
+                                text="Sass has been set")
+        #If no sass is associated with victim, associate
+        else:
+            table_row.blurb = sass_content
+            db.session.commit()
+            self.client.api_call("chat.postMessage",
+                                channel=channel_id,
+                                text="Sass has been set")
 
-    def sass(self, channel_id, user_id, sass_victim):
-        response =  {
-            'andrew': 'Andrew has a mangina, Andrew has a mangina.',
-            'alex': 'Dude, check out his hammies, those things are massive',
-            'nick': 'Sorry, you need to leave him alone. He needs to focus on his art.',
-            'brendan': 'Shhhhhh! He\'s busy studying',
-            'adam': 'That fucker hasn\'t joined yet, he does not exist',
-            'millian': 'Sorry, you need to leave him alone. He needs to focus on his art.'
-        }.get(sass_victim, 'Sorry, that is not the user you want to sass.')
+    def sass(self, channel_id, user_id, message):
+        parsed_message = message.split('> sass ')
+        sass_victim = parsed_message[1]
 
-        self.client.api_call("chat.postMessage", channel=channel_id, text=response)
+        table_row = SassEntry.query.filter_by(receiver=sass_victim).first()
+
+        if (table_row is None):
+            self.client.api_call("chat.postMessage",
+                                    channel=channel_id,
+                                    text="That user doesn't have any sass set. Try setting sass first.")
+        else:
+            self.client.api_call("chat.postMessage",
+                            channel=channel_id,
+                            text=table_row.blurb)
+
+        
         
 
    

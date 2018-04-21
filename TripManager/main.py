@@ -42,7 +42,7 @@ migrate = Migrate(app, db)
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
 
-import TripManager.views
+#import TripManager.views
 
 
 class RegexConverter(BaseConverter):

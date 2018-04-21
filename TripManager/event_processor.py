@@ -36,9 +36,14 @@ class EventProcessor:
             self.response = "Listed camping items purchased"
             return make_response(self.response, 200)
 
-        elif '> set sass <' in self.message_content:
+        elif '> set sass for <' in self.message_content:
             pyBot.set_sass(self.channel_id, self.user_id, self.message_content)
-            self.response = "Sass was set"
+            self.response = "Sass has been set"
+            return make_response(self.response, 200)
+
+        elif '> sass <' in self.message_content:
+            pyBot.sass(self.channel_id, self.user_id, self.message_content)
+            self.response = "Sass has been delivered"
             return make_response(self.response, 200)
             
             
