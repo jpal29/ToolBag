@@ -231,7 +231,10 @@ class Bot(object):
     def set_sass(self, channel_id, user_id, message):
         #We need to parse the message to get the user(sass victim) and the message.
         #The format of the message should be @TripManager set sass for @Josh Is he even relevant?
-        parsed_message = message.split('> set sass for ')
+        if ('> set sass for ') in message:
+            parsed_message = message.split('> set sass for ')
+        else:
+            parsed_message = message.split('set sass for ')
         re_parsed_message = parsed_message[1].split('> ')
         sass_victim = re_parsed_message[0] + ">"
         sass_content = re_parsed_message[1]
@@ -254,9 +257,13 @@ class Bot(object):
                                 text="Sass has been set")
 
     def sass(self, channel_id, user_id, message):
-        parsed_message = message.split('> sass ')
+        if ('> sass ') in message:
+            parsed_message = message.split('> sass ')
+        else:
+            parsed_message = message.split('sass ')
+        print(parsed_message)
         sass_victim = parsed_message[1]
-
+        print(sass_victim)
         table_row = SassEntry.query.filter_by(receiver=sass_victim).first()
 
         if (table_row is None):
