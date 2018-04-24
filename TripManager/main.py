@@ -17,11 +17,11 @@ from TripManager.models import db, Entry
 from TripManager.bot import Bot
 from TripManager.event_processor import EventProcessor
 
-ADMIN_PASSWORD = 'secret'
+ADMIN_PASSWORD = os.getenv('Personal_Site_Admin_Password')
 
 
 
-SECRET_KEY = 'supersecret'
+SECRET_KEY = os.getenv('Personal_Site_Secret_Key')
 SITE_WIDTH = 800
 
 
