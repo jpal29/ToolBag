@@ -118,6 +118,7 @@ class Bot(object):
             parsed_item_request = item_request.split("add ")
         camping_item = parsed_item_request[1]
         user_info = self.client.api_call("users.info", user=user_id)
+        print(user_info)
         user_name = user_info["user"]["profile"]["real_name"]
         new_item = CampItemNeed(camping_item, user_name)
         db.session.add(new_item)
