@@ -92,6 +92,8 @@ def hears():
 # We can verify the request is coming from Slack by checking that the
 # verification token in the request matches our app's settings
     if pyBot.verification != slack_event.get("token"):
+        print(pyBot.verification)
+        print(slack_event.get("token"))
         print("You got the wrong one Buzzo")
         message = "Invalid Slack verification token: %s \npyBot has: \
             %s\n\n" % (slack_event["token"], pyBot.verification)
