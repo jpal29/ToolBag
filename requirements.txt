@@ -28,7 +28,6 @@ requests==2.11.1
 six==1.10.0
 slackclient==1.0.2
 SQLAlchemy==1.2.0
--e git+git@github.com:jpal29/TripManager.git@2421cca148a10fc7069e857facda7115e0c65768#egg=TripManager
 uWSGI==2.0.15
 websocket-client==0.37.0
 Werkzeug==0.11.11
