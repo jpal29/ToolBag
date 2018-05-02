@@ -10,9 +10,9 @@ Need to import the main file that contains the instance of the flask app that I 
 At least until I restructure this whole project to be more standardized.
 """
 
-
-from .TripManager.main import app
-from .TripManager.models import db
+import TripManager
+from TripManager.main import app
+from TripManager.models import db
 
 @pytest.fixture
 def client():
