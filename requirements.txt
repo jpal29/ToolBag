@@ -1,5 +1,6 @@
 alembic==0.9.9
 aniso8601==2.0.0
+attrs==17.4.0
 bcrypt==3.1.4
 beautifulsoup4==4.6.0
 cffi==1.11.4
@@ -9,18 +10,25 @@ Flask-Migrate==2.1.1
 Flask-RESTful==0.3.6
 Flask-Script==2.0.6
 Flask-SQLAlchemy==2.3.2
+funcsigs==1.0.2
 itsdangerous==0.24
 Jinja2==2.8
 Mako==1.0.7
 Markdown==2.6.11
 MarkupSafe==0.23
 micawber==0.3.4
+more-itertools==4.1.0
 mysqlclient==1.3.12
 peewee==2.10.2
+pkg-resources==0.0.0
+pluggy==0.6.0
+py==1.5.3
 pyaml==16.9.0
 pycparser==2.18
 Pygments==2.2.0
+pytest==3.5.1
 python-dateutil==2.7.2
+python-dotenv==0.8.2
 python-editor==1.0.3
 pytz==2017.3
 PyYAML==3.12
@@ -28,6 +36,7 @@ requests==2.11.1
 six==1.10.0
 slackclient==1.0.2
 SQLAlchemy==1.2.0
+-e git+git@github.com:jpal29/TripManager.git@944cb160f1a763347a670d0bc67824d62ad15fd4#egg=TripManager
 uWSGI==2.0.15
 websocket-client==0.37.0
 Werkzeug==0.11.11
