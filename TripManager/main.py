@@ -16,7 +16,11 @@ from flask_migrate import Migrate, MigrateCommand
 from TripManager.models import db, Entry
 from TripManager.bot import Bot
 from TripManager.event_processor import EventProcessor
+from dotenv import load_dotenv
 
+#Loading environment variables from .env file
+basedir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(basedir, '.env'))
 ADMIN_PASSWORD = os.getenv('Personal_Site_Admin_Password')
 
 
