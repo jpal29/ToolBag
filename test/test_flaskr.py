@@ -2,7 +2,7 @@ import os
 import sys
 import pytest
 import tempfile
-import TripManager
+#import TripManager
 
 
 """
@@ -11,8 +11,8 @@ At least until I restructure this whole project to be more standardized.
 """
 
 
-from TripManager.main import app
-from TripManager.models import db
+from .TripManager.main import app
+from .TripManager.models import db
 
 @pytest.fixture
 def client():
