@@ -5,6 +5,7 @@ import tempfile
 import TripManager
 import json
 from dotenv import load_dotenv
+from test.util import request_wrapper
 
 """
 Need to import the main file that contains the instance of the flask app that I want to test. 
@@ -63,30 +64,39 @@ def test_challenge(client):
 	assert response.status_code == 200
 
 
+
+
 #Test for adding an item to the slackbot via dm
 def test_add_item(client):
-	mimetype = 'application/json'
-	
-	headers = {
-		'content-type': mimetype,
-		'accept': mimetype
-	}
+	add_request = request_wrapper("add foo")
 
-	data = {
-		"token": os.getenv("VERIFICATION_TOKEN"),
-		"event": {
-			"channel": os.getenv("TEST_CHANNEL"),
-			"type": "message",
-			"user": os.getenv("TEST_USER"),
-			"text": "add foo",
-
-		},
-		"type": "event_callback"
-	}
-
-	response = client.post('/listening', data=json.dumps(data), headers=headers)
+	response = client.post('/listening', data=json.dumps(add_request.data), headers=add_request.headers)
 	assert "Items were added" in response.data
 	assert response.status_code == 200
+
+def test_remove_item(client):
+	remove_request = request_wrapper("remove foo")
+	response = client.post('/listening', data=json.dumps(remove_request.data), headers=remove_request.headers)
+	assert "Items were removed from list of needed items and added to purchased item list"
+
+def test_list_needed_items(client):
+	list_request = request_wrapper("list needed items")
+
+	response = client.post('/listening', data=json.dumps(list_request.data), headers=list_request.headers)
+	assert "Listed camping items needed" in response.data
+	assert response.status_code == 200
+
+def test_list_purchased_items(client):
+	list_request = request_wrapper("list purchased items")
+
+	response = client.post('/listening', data=json.dumps(list_request.data), headers=list_request.headers)
+	assert "Listed camping items purchased" in response.data
+	assert response.status_code == 200
+
+
+
+
+
 
 
 
