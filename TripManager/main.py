@@ -17,6 +17,7 @@ from TripManager.models import db, Entry
 from TripManager.bot import Bot
 from TripManager.event_processor import EventProcessor
 from dotenv import load_dotenv
+from slackclient import SlackClient
 
 #Loading environment variables from .env file
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -109,6 +110,7 @@ def hears():
 # ====== Process Incoming Events from Slack ======= #
 # If the incoming request is an Event we've subcribed to
     if "event" in slack_event and 'subtype' not in slack_event['event']:
+        pprint.pprint(slack_event)
         event_type = slack_event["event"]["type"]
         NewEvent = EventProcessor(event_type, slack_event)
 
@@ -124,6 +126,83 @@ def hears():
     # If our bot hears things that are not events we've subscribed to
     return make_response("[NO EVENT IN SLACK REQUEST] These are not the droids\
     you're looking for.", 404, {"X-Slack-No-Retry": 1})
+
+
+
+@app.route("/slack/message_actions", methods=["POST"])
+def message_actions():
+    pprint.pprint(request.form["payload"])
+    #Parse the request payload
+    message_action = json.loads(request.form["payload"])
+    user_id = message_action["user"]["id"]
+    slack_client = SlackClient(os.environ.get("TRIPMANAGER_OAUTH_TOKEN"))
+    channel_id = message_action["channel"]["id"]
+    if message_action["type"] == "interactive_message":
+
+        if message_action["actions"][0]["name"] == "coffee_order":
+
+            #Show the ordering dialog to the user
+            open_dialog = slack_client.api_call(
+                    "dialog.open",
+                    trigger_id=message_action["trigger_id"],
+                    dialog={
+                        "title": "Request a coffee",
+                        "submit_label": "Submit",
+                        "callback_id": user_id + "coffee_order_form",
+                        "elements": [
+                            {
+                                "label": "Coffee Type",
+                                "type": "select",
+                                "name": "meal_preferences",
+                                "placeholder": "Select a drink",
+                                "options": [
+                                    {
+                                        "label": "Cappuccino",
+                                        "value": "cappucino"
+                                    },
+                                    {
+                                        "label": "Latte",
+                                        "value": "latte"
+                                    }
+                                ]
+                            }
+
+                        ]
+                    }
+                )
+
+            slack_client.api_call(
+                    "chat.update",
+                    channel=channel_id,
+                    text=":pencil: Taking your order....",
+                    attachments=[]
+                )
+            print(open_dialog)
+
+        elif message_action["actions"][0]["name"] == "enter_test":
+
+            open_dialog = slack_client.api_call(
+                    "dialog.open",
+                    trigger_id=message_action["trigger_id"],
+                    dialog={
+                        "title": "Test enter dialog",
+                        "submit_label": "Submit",
+                        "callback_id": user_id + "coffee_order_form",
+                        "elements": [
+                            {
+                                "label": "Test enter",
+                                "type": "text",
+                                "name": "test_text_field",
+                                "subtype": "number", #Important for mobile clients so that it prompts them to use the right keyboard
+                                "placeholder": "Enter something"
+                            }
+                        ]
+                    }
+                )
+
+    # elif message_action["type"] == "dialog_submission":
+    #     coffee_order = 
+    return make_response("", 200)
 
 
 @app.route('/')

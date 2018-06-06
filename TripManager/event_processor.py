@@ -45,6 +45,17 @@ class EventProcessor:
             pyBot.sass(self.channel_id, self.user_id, self.message_content)
             self.response = "Sass has been delivered"
             return make_response(self.response, 200)
+
+        elif 'test send attachment' in self.message_content:
+            print('GOT IT - ---------------------')
+            pyBot.order_test(self.channel_id, self.user_id)
+            self.response = "Sent test attachment"
+            return make_response(self.response, 200)
+
+        elif 'test send input' in self.message_content:
+            pyBot.custom_enter_test(self.channel_id, self.user_id)
+            self.response = "Sent test attachment"
+            return make_response(self.response, 200)
             
             
         elif any(name in self.message_content for name in self.names):

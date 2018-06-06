@@ -275,7 +275,44 @@ class Bot(object):
             self.client.api_call("chat.postMessage",
                             channel=channel_id,
                             text=table_row.blurb)
+    
+    def order_test(self, channel_id, user_id):
+        
+        self.client.api_call("chat.postMessage",
+                                channel=channel_id,
+                                text="I am Trip Manager ::robot_face:: and I\'m here to cause chaos",
+                                attachments=[{
+                                    "text": "",
+                                    "callback_id": user_id + "coffee_order_form",
+                                    "color": "#3AA3E3",
+                                    "attachment_type": "default",
+                                    "actions": [{
+                                        "name": "coffee_order",
+                                        "text": ":coffee: Order Coffee",
+                                        "type": "button",
+                                        "value": "coffee_order"
+                                    }]
+                                }])
 
+    def custom_enter_test(self, channel_id, user_id):
+
+        self.client.api_call("chat.postMessage",
+                                channel=channel_id,
+                                text="Some testing stuff",
+                                attachments=[{
+                                    "text": "",
+                                    "callback_id": user_id + "custom_enter_form",
+                                    "color": "#3AA3E3",
+                                    "attachment_type": "default",
+                                    "actions": [{
+                                        "name": "enter_test",
+                                        "text": "Enter Test",
+                                        "type": "button",
+                                        "value": "enter_test"
+                                    }]
+                                }])
+        
+    
         
         
 
