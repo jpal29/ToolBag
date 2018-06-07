@@ -13,7 +13,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
 from flask_script import Manager 
 from flask_migrate import Migrate, MigrateCommand 
-from TripManager.models import db, Entry
+from TripManager.models import db, Entry, User
 from TripManager.bot import Bot
 from TripManager.event_processor import EventProcessor
 from dotenv import load_dotenv
@@ -138,9 +138,17 @@ def message_actions():
     slack_client = SlackClient(os.environ.get("TRIPMANAGER_OAUTH_TOKEN"))
     channel_id = message_action["channel"]["id"]
     if message_action["type"] == "interactive_message":
-
         if message_action["actions"][0]["name"] == "coffee_order":
-
+            
+            users = User.query.filter().all()
+            user_list = []
+            for user in users:
+                entry = {
+                    "label": user.real_name,
+                    "value": user.slack_id
+                }
+                user_list.append(entry)
+            
             #Show the ordering dialog to the user
             open_dialog = slack_client.api_call(
                     "dialog.open",
@@ -151,20 +159,17 @@ def message_actions():
                         "callback_id": user_id + "coffee_order_form",
                         "elements": [
                             {
-                                "label": "Coffee Type",
+                                "label": "Users",
                                 "type": "select",
                                 "name": "meal_preferences",
-                                "placeholder": "Select a drink",
-                                "options": [
-                                    {
-                                        "label": "Cappuccino",
-                                        "value": "cappucino"
-                                    },
-                                    {
-                                        "label": "Latte",
-                                        "value": "latte"
-                                    }
-                                ]
+                                "placeholder": "Select a user",
+                                "options": user_list
+                            },
+                            {
+                                "label": "Test enter",
+                                "type": "text",
+                                "name": "test_text_field",
+                                "placeholder": "Enter sass"
                             }
 
                         ]
