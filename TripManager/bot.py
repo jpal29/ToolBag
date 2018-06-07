@@ -104,9 +104,6 @@ class Bot(object):
         dm_id = new_dm["channel"]["id"]
         return dm_id
 
-    """def open_cm(self, channel_id):
-        new_cm = self.client.api_call("im.open",)"""
-
     def add_camping_item(self, channel_id, user_id, item_request):
         parsed_item_request = ""
         #Need to handle both direct requests and app mention.
