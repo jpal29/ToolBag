@@ -109,7 +109,7 @@ def hears():
 
 # ====== Process Incoming Events from Slack ======= #
 # If the incoming request is an Event we've subcribed to
-    if "event" in slack_event and 'subtype' not in slack_event['event']:
+    if "event" in slack_event and "subtype" not in slack_event['event']:
         pprint.pprint(slack_event)
         event_type = slack_event["event"]["type"]
         NewEvent = EventProcessor(event_type, slack_event)
@@ -131,15 +131,23 @@ def hears():
 
 @app.route("/slack/message_actions", methods=["POST"])
 def message_actions():
+    """
+    print('-------------REQUEST HEADERS------------------')
+    pprint.pprint(request.headers)
+    print('-------------REQUEST FORM---------------------')
+    pprint.pprint(request.form)
+    print('-------------REQUEST PAYLOAD------------------')
     pprint.pprint(request.form["payload"])
+    """
     #Parse the request payload
     message_action = json.loads(request.form["payload"])
     user_id = message_action["user"]["id"]
     slack_client = SlackClient(os.environ.get("TRIPMANAGER_OAUTH_TOKEN"))
     channel_id = message_action["channel"]["id"]
     if message_action["type"] == "interactive_message":
-        if message_action["actions"][0]["name"] == "coffee_order":
-            
+
+        if message_action["actions"][0]["name"] == "set_sass":
+
             users = User.query.filter().all()
             user_list = []
             for user in users:
@@ -148,71 +156,47 @@ def message_actions():
                     "value": user.slack_id
                 }
                 user_list.append(entry)
-            
-            #Show the ordering dialog to the user
+
             open_dialog = slack_client.api_call(
                     "dialog.open",
                     trigger_id=message_action["trigger_id"],
                     dialog={
-                        "title": "Request a coffee",
+                        "title": "Set sass",
                         "submit_label": "Submit",
-                        "callback_id": user_id + "coffee_order_form",
+                        "callback_id": user_id + "sass_form",
                         "elements": [
                             {
                                 "label": "Users",
                                 "type": "select",
-                                "name": "meal_preferences",
+                                "name": "sass_victim",
                                 "placeholder": "Select a user",
                                 "options": user_list
                             },
                             {
-                                "label": "Test enter",
+                                "label": "Sass",
                                 "type": "text",
-                                "name": "test_text_field",
+                                "name": "sass_entry",
                                 "placeholder": "Enter sass"
                             }
-
                         ]
                     }
                 )
 
+            return make_response("Sass form has been sent", 200)
+    elif message_action["type"] == "dialog_submission":
+        
+        if "sass_victim" in message_action["submission"]:
+            sass_victim = message_action["submission"]["sass_victim"]
+            sass_message = message_action["submission"]["sass_entry"]
+            pyBot.set_sass(sass_victim, sass_message)
             slack_client.api_call(
-                    "chat.update",
-                    channel=channel_id,
-                    text=":pencil: Taking your order....",
+                    "chat.postMessage",
+                    channel=message_action["channel"]["id"],
+                    text="You can consider the sass as being set",
                     attachments=[]
                 )
-            print(open_dialog)
-
-        elif message_action["actions"][0]["name"] == "enter_test":
-
-            open_dialog = slack_client.api_call(
-                    "dialog.open",
-                    trigger_id=message_action["trigger_id"],
-                    dialog={
-                        "title": "Test enter dialog",
-                        "submit_label": "Submit",
-                        "callback_id": user_id + "coffee_order_form",
-                        "elements": [
-                            {
-                                "label": "Test enter",
-                                "type": "text",
-                                "name": "test_text_field",
-                                "subtype": "number", #Important for mobile clients so that it prompts them to use the right keyboard
-                                "placeholder": "Enter something"
-                            }
-                        ]
-                    }
-                )
-
-    # elif message_action["type"] == "dialog_submission":
-    #     coffee_order = 
+            return make_response("You can consider the sass as being set", 200)
     return make_response("", 200)
-
-
-@app.route('/')
-def index():
-    return render_template('test/index.html')
 
 
 @app.template_filter('clean_querystring')
