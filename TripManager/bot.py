@@ -226,43 +226,39 @@ class Bot(object):
                                 text="Here are the camping items purchased",
                                 attachments=attachment)
 
-    def set_sass(self, channel_id, user_id, message):
-        #We need to parse the message to get the user(sass victim) and the message.
-        #The format of the message should be @TripManager set sass for @Josh Is he even relevant?
-        if ('> set sass for ') in message:
-            parsed_message = message.split('> set sass for ')
-        else:
-            parsed_message = message.split('set sass for ')
-        re_parsed_message = parsed_message[1].split('> ')
-        sass_victim = re_parsed_message[0] + ">"
-        sass_content = re_parsed_message[1]
+    def prepare_sass(self, channel_id, user_id, message):
+        self.client.api_call("chat.postMessage",
+                                channel=channel_id,
+                                text="Time to set some sass!",
+                                attachments=[{
+                                    "text": "Sass away!",
+                                    "callback_id": user_id + "sass_form",
+                                    "color": "#3AA3E3",
+                                    "attachment_type": "default",
+                                    "actions": [{
+                                        "name": "set_sass",
+                                        "text": "sass",
+                                        "type": "button",
+                                        "value": "set_sass"
+                                    }]
+                                }]
+            )
 
-        table_row = SassEntry.query.filter_by(receiver=sass_victim).first()
+
+    def set_sass(self, user_id, sass_message):
+        table_row = SassEntry.query.filter_by(receiver=user_id).first()
         #Need to see if the sass victim already has some sass associated with them
         if (table_row is None):
-            new_sass = SassEntry(sass_content, sass_victim)
+            new_sass = SassEntry(sass_message, user_id)
             db.session.add(new_sass)
             db.session.commit()
-            self.client.api_call("chat.postMessage",
-                                channel=channel_id,
-                                text="Sass has been set")
-        #If no sass is associated with victim, associate
         else:
-            table_row.blurb = sass_content
+            table_row.blurb = sass_message
             db.session.commit()
-            self.client.api_call("chat.postMessage",
-                                channel=channel_id,
-                                text="Sass has been set")
 
-    def sass(self, channel_id, user_id, message):
-        if ('> sass ') in message:
-            parsed_message = message.split('> sass ')
-        else:
-            parsed_message = message.split('sass ')
-        print(parsed_message)
-        sass_victim = parsed_message[1]
-        print(sass_victim)
-        table_row = SassEntry.query.filter_by(receiver=sass_victim).first()
+    def sass(self, channel_id, receiver_id):
+        
+        table_row = SassEntry.query.filter_by(receiver=receiver_id).first()
 
         if (table_row is None):
             self.client.api_call("chat.postMessage",
@@ -273,41 +269,7 @@ class Bot(object):
                             channel=channel_id,
                             text=table_row.blurb)
     
-    def order_test(self, channel_id, user_id):
-        
-        self.client.api_call("chat.postMessage",
-                                channel=channel_id,
-                                text="I am Trip Manager ::robot_face:: and I\'m here to cause chaos",
-                                attachments=[{
-                                    "text": "",
-                                    "callback_id": user_id + "coffee_order_form",
-                                    "color": "#3AA3E3",
-                                    "attachment_type": "default",
-                                    "actions": [{
-                                        "name": "coffee_order",
-                                        "text": ":coffee: Order Coffee",
-                                        "type": "button",
-                                        "value": "coffee_order"
-                                    }]
-                                }])
-
-    def custom_enter_test(self, channel_id, user_id):
-
-        self.client.api_call("chat.postMessage",
-                                channel=channel_id,
-                                text="Some testing stuff",
-                                attachments=[{
-                                    "text": "",
-                                    "callback_id": user_id + "custom_enter_form",
-                                    "color": "#3AA3E3",
-                                    "attachment_type": "default",
-                                    "actions": [{
-                                        "name": "enter_test",
-                                        "text": "Enter Test",
-                                        "type": "button",
-                                        "value": "enter_test"
-                                    }]
-                                }])
+    
         
     
         
