@@ -1,11 +1,10 @@
 language: python
-
 python:
-  - 3.5
-
+- 3.5
 install:
-  - pip install -r requirements.txt
-  - pip install -e .
-
+- pip install -r requirements.txt
+- pip install -e .
 script:
-  - pytest
+- pytest
+env:
+  secure: hws65dA1gHhrDzBKYv6nPZo6GS/eVal/OLk6JLyHwpD18TDGO4AIxjBNKYwTuKytg5PCmJKfPjvDQDyHOMtLx6p/8Rw8DrM9KISvkHWIFZHmelUOFN0v3XVYJJg2KKbPtADD0c1G8m8HjlDJYHTxmolrtWyWrgqylFtZqfhYsCl5gIB8ED/4rDyj8R7VTPTaF79+KGiNs0jodh1DpnllUIT483BKNgfi+3rQ+Uyn0NiMQd0vAaEZcgr5tKOxOMcoKjIN2ZXHcH6WSI/SHLq5LFeHhRUGMa/ekyDDfjK8a6kHBLWlcdfUHwnxRyLae+V3tE6MNjz5UcLPVYkRad2x44T1Fo9YFd+c8Qx6Vivo3EYdJB6dKVpcYM/F0N7kFqR6j3NGi5QTdp8+RWRv98mYKR7Gtf84F4vrhZgJu8PPgnIZHzMpCMyhF3CYtnGHe8ZRycO1AwACJdlR+SnN96No0W7vYqFLOTZCNeA14EFXnp2C3H7b0/cuBsgTeIPXM9zsBJGQCEoXHQL4I5sWfzUmCpk+3IONMLhguIkVKoHqQhtV5GRhJyWOfRIH1ayJfpYEwwmSSo5MQY+Ulj0kVhBlnR/bn7QUDgKUq8e4k5kX9Vfwnb2cjDZvTy5hx/IeJYVJeCbGf12B04Hp60cd0BTPBMzQPc8t+8kYXxT6fz9oXRs=
