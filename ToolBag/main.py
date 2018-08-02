@@ -13,9 +13,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
 from flask_script import Manager 
 from flask_migrate import Migrate, MigrateCommand 
-from TripManager.models import db, Entry, User
-from TripManager.bot import Bot
-from TripManager.event_processor import EventProcessor
+from ToolBag.models import db, Entry, User
+from ToolBag.bot import Bot
+from ToolBag.event_processor import EventProcessor
 from dotenv import load_dotenv
 from slackclient import SlackClient
 

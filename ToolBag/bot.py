@@ -3,13 +3,13 @@
 Python Slack Bot class for use with the pythOnBoarding app
 """
 import os
-import TripManager.message
+import ToolBag.message
 import MySQLdb
 import pprint
 
 from slackclient import SlackClient
 
-from TripManager.models import db, CampItemNeed, CampItemHave, SassEntry
+from ToolBag.models import db, CampItemNeed, CampItemHave, SassEntry
 
 # To remember which teams have authorized your app and what tokens are
 # associated with each team, we can store this information in memory on

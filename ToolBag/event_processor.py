@@ -1,5 +1,5 @@
 from flask import (make_response)
-from TripManager.models import db, Entry, User
+from ToolBag.models import db, Entry, User
 
 
 class EventProcessor:
